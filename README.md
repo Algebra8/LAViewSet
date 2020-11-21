@@ -2,7 +2,7 @@
 #### A Lyte (light) Asynchronous ViewSet.
 
 A ViewSets package, a-la Django Rest Framework - ViewSets, built on top of 
-`aiohttp.web` for asynchronous HTTP handling.
+`aiohttp.web`.
 # *********************************************************
 
 
