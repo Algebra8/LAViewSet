@@ -60,7 +60,7 @@ base_route = Route.create_base(app.router)      # '/'
 
 ```
 listings_route = base_route.extend('listings')  # '/listings'
-events_route = base_route.extend('/events')     # '/evets'
+events_route = base_route.extend('/events')     # '/events'
 
 # We can further extend a resource
 sessions_route = listings.extend('sessions')    # '/listings/sessions'
