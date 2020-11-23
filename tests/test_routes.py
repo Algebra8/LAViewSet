@@ -108,7 +108,8 @@ def test_wrapping(base_router):
     assert routes.is_view(view)
 
     view_attrs = routes.get_view_attrs(view)
-    assert view_attrs.path == test_route.path + _PATH
+    # Since _PATH is a base path, it should result in '' postfix.
+    assert view_attrs.path == test_route.path + ''
     assert view_attrs.method == _METHOD
     assert view_attrs.routedef_kwargs == _ROUTEDEF_KWARGS
 
