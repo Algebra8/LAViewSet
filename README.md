@@ -29,7 +29,7 @@ class ListingsViewSet(ViewSet):
     @route('/', HttpMethods.GET)
     async def list(self, request):
         assert isinstance(request, web.Request)
-        return web.Response(text='GET at '/listings/')
+        return web.Response(text='GET at '/listings')
 
 
 web.run_app(app)
@@ -88,7 +88,7 @@ class ListingsViewSet(ViewSet):
     @route('/', HttpMethods.GET)
     async def list(self, request):
         ...
-        return web.Response(text='GET at /listings/ with {self.serializer}')
+        return web.Response(text='GET at /listings with {self.serializer}')
 
 
 web.run_app(app)
@@ -104,7 +104,7 @@ serializer = 'some_serializer'
 
 def handler(request):
     ...
-    return web.Response(text='GET at /listings/ with {self.serializer}')
+    return web.Response(text='GET at /listings with {self.serializer}')
 
 
 app = web.Application()
@@ -129,7 +129,7 @@ the `web.route` method, and finally, the view itself will be the `handler`.
     @route('/', HttpMethods.GET, z=20, f='abc')     # z=20 and f='abc' will be
     async def list(self, request):                  # passed into web.route
         ...
-        return web.Response(text='GET at '/listings/')
+        return web.Response(text='GET at '/listings')
 ```
 
 Since the idea behind `laviewset` is an asynchronous ViewSet a-la [Django Rest Framework - ViewSets](https://www.django-rest-framework.org/api-guide/viewsets/), 
@@ -287,7 +287,7 @@ class ListingsViewSet(ViewSet):
     
     @route('/', HttpMethods.GET)
     async def list(self, request):
-        # GET at '/listings/'
+        # GET at '/listings'
         ...
         return web.Response(...)
 
@@ -301,7 +301,7 @@ class ListingsViewSet(ViewSet):
     
     @route('/', HttpMethods.POST)
     async def create(self, request):
-        # POST at '/listings/'
+        # POST at '/listings'
         data = await request.json()
         return web.Response(text=f'Metrics Created data: {data}')
 
