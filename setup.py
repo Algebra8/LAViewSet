@@ -11,7 +11,7 @@ install_requires = [
 
 setuptools.setup(
     name="laviewset-algebra8",
-    version="0.0.1",
+    version="0.0.2",
     author="Milad M. Nasrollahi",
     author_email="milad.m.nasr@gmail.com",
     description="A Lyte (light) Async Viewset.",
