@@ -101,7 +101,7 @@ class Route:
         return inner
 
     def _validate_path(self, path: str) -> str:
-        if self.is_base:
+        if self.is_base or _is_base_path(path):
             return ''
         if not path.startswith('/'):
             path = f'/{path}'

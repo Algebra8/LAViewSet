@@ -115,7 +115,7 @@ def cli_custom(loop, aiohttp_client, app, viewset_custom_methods):
 
 
 async def test_list(cli_core):
-    resp = await cli_core.get('/tests/')
+    resp = await cli_core.get('/tests')
 
     assert resp.status == 200
     assert resp.method == views.HttpMethods.GET
@@ -123,7 +123,7 @@ async def test_list(cli_core):
 
 
 async def test_create(cli_core):
-    resp = await cli_core.post('/tests/')
+    resp = await cli_core.post('/tests')
 
     assert resp.status == 200
     assert resp.method == views.HttpMethods.POST
@@ -167,7 +167,7 @@ async def test_http_not_found(cli_http_not_found):
     Test that a method that has not been overridden
     will return a 404.
     """
-    resp_list = await cli_http_not_found.get('/fail/')
+    resp_list = await cli_http_not_found.get('/fail')
     assert resp_list.status == 404
 
 
@@ -182,28 +182,28 @@ async def test_multiple_dynamic_resources(cli_custom):
 
 
 async def test_custom_get(cli_custom):
-    resp = await cli_custom.get('/custom/')
+    resp = await cli_custom.get('/custom')
 
     assert resp.status == 200
     assert await resp.text() == _TEST_RESPONSE
 
 
 async def test_custom_post(cli_custom):
-    resp = await cli_custom.post('/custom/')
+    resp = await cli_custom.post('/custom')
 
     assert resp.status == 200
     assert await resp.text() == _TEST_RESPONSE
 
 
 async def test_custom_put(cli_custom):
-    resp = await cli_custom.put('/custom/')
+    resp = await cli_custom.put('/custom')
 
     assert resp.status == 200
     assert await resp.text() == _TEST_RESPONSE
 
 
 async def test_custom_patch(cli_custom):
-    resp = await cli_custom.patch('/custom/')
+    resp = await cli_custom.patch('/custom')
 
     assert resp.status == 200
     assert await resp.text() == _TEST_RESPONSE
@@ -301,7 +301,7 @@ def test_registered_routedef(mock_webroute, base_route):
     call_args, call_kwargs = mock_webroute.call_args
     mock_webroute.assert_called_once()
     assert call_args[0] == 'GET'
-    assert call_args[1] == '/test/'
+    assert call_args[1] == '/test'
     assert call_kwargs['z'] == 10
 
 
