@@ -351,9 +351,6 @@ install it is through `LAViewSet/setup.py`.
 
  This package uses the [`aiohttp`](https://github.com/aio-libs/aiohttp) package, which is distributed under the Apache 2 license.
 
-# *********************************************************
-
-### Benchmarks
 
 
 
