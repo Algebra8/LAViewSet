@@ -303,5 +303,3 @@ def test_registered_routedef(mock_webroute, base_route):
     assert call_args[0] == 'GET'
     assert call_args[1] == '/test'
     assert call_kwargs['z'] == 10
-
-
