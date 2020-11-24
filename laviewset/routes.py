@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from typing import *
+from typing import (
+    NamedTuple,
+    Dict,
+    Any,
+    Callable,
+)
 
 import attr
 from aiohttp import web
