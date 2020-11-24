@@ -134,5 +134,3 @@ def get_view_attrs(o: Callable[..., Any]) -> ViewAttrs:
             "i.e. if routes.is_view(callable) == True."
         )
     return getattr(o, _VIEW_ATTRS)
-
-

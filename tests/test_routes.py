@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import *
+from typing import cast
 
 import pytest
 from aiohttp import web
@@ -112,8 +112,3 @@ def test_wrapping(base_router):
     assert view_attrs.path == test_route.path + ''
     assert view_attrs.method == _METHOD
     assert view_attrs.routedef_kwargs == _ROUTEDEF_KWARGS
-
-
-
-
-
