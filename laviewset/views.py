@@ -1,6 +1,21 @@
 from __future__ import annotations
 
-from typing import *
+from typing import (
+    TypeVar,
+    Callable,
+    Awaitable,
+    Any,
+    Union,
+    List,
+    Dict,
+    Iterator,
+    Tuple,
+    cast,
+    Mapping,
+    NoReturn,
+    Generic
+)
+from ._compat import Protocol
 import functools
 import inspect
 import string
@@ -102,7 +117,7 @@ def _wrong_params_error(
 
     E.g.
 
-        @route(r'/{pk:\d+}', HttpMethods.GET)
+        @route(r'/{pk:\\d+}', HttpMethods.GET)
         async def f(self, request, *, name):  # name != pk
             ...
     """
@@ -134,7 +149,7 @@ def _kw_only_args_error(
 
     E.g.
 
-        @route(r'/{pk:\d+}', HttpMethods.GET)
+        @route(r'/{pk:\\d+}', HttpMethods.GET)
         async def f(self, request, pk):  # should be pk=None or *, pk
             ...
     """
@@ -324,5 +339,3 @@ class ViewSet(_ViewSet, metaclass=_ViewSetMeta):
             self, request: web.Request, *, pk: int
     ) -> web.StreamResponse:
         return raise_404()
-
-
