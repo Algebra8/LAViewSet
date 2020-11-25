@@ -28,6 +28,8 @@ def get_package_info(rel_path):
             f"Unable to find one of the following: {vals.keys()}"
         )
 
+    return vals
+
 
 package_info = get_package_info("laviewset/__init__.py")
 
