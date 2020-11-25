@@ -8,3 +8,8 @@ __all__: Tuple[str] = (
     'ViewSet',
     'HttpMethods'
 )
+
+__version__ = "0.0.1"
+
+__author__ = "Milad M. Nasrollahi"
+__email__ = "milad.m.nasr@gmail.com"
