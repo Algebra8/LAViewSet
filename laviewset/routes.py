@@ -5,10 +5,13 @@ from typing import (
     Dict,
     Any,
     Callable,
+    Optional
 )
 
 import attr
 from aiohttp import web
+
+from .resources import Resource
 
 
 _VIEW = '_view_'
@@ -16,8 +19,13 @@ _VIEW_ATTRS = '_view_attrs_'
 _exists = object()
 
 
-def _is_base_path(p: str) -> bool:
-    return p == '/'
+def _pop(d: Dict[str, Any], key: str) -> Optional[Any]:
+    if key in d:
+        val = d.get(key)
+        del d[key]
+    else:
+        val = None
+    return
 
 
 class ViewAttrs(NamedTuple):
@@ -44,26 +52,25 @@ class RouteError(Exception):
 @attr.s(auto_attribs=True)
 class Route:
 
-    path: str
     router: web.UrlDispatcher
 
-    name: str = f'Route for {__name__}'  # default name
+    name: Optional[str] = None
     is_base: bool = False
+    _path: Optional[Resource] = None
 
-    def __add__(self, oroute: Route) -> Route:
-        if oroute.router != self.router:
-            raise RouteError(
-                f'Extensions of {self} must have the same router.'
-            )
+    def __attrs_post_init__(self):
+        if self.name is None:
+            self.name = f'Route for {__name__}'  # default name
 
-        return Route(
-            self.path + oroute.path,
-            self.router,
-            name=self.name
-        )
+    @property
+    def path(self) -> str:
+        return str(self._path)
 
-    def __attrs_post_init__(self) -> None:
-        self.path = self._validate_path(self.path)
+    @path.setter
+    def path(self, p: Resource) -> None:
+        if not isinstance(p, Resource):
+            raise TypeError(f"Can't set path with type {type(p)}")
+        self._path = p
 
     @classmethod
     def create_base(cls, router: web.UrlDispatcher, **kw) -> Route:
@@ -72,9 +79,13 @@ class Route:
         The `create_base` method should be preferred for project level
         initialization of the base Route over __init__.
         """
-        return Route('', router, is_base=True, **kw)
+        enforce = _pop(kw, 'enforce')
 
-    def extend(self, path: str) -> Route:
+        route = Route(router, is_base=True, **kw)
+        route.path = Resource.create_base(enforce=enforce)
+        return route
+
+    def extend(self, path: str, **kw) -> Route:
         """Create and return an extension of an existing Route.
 
         E.g.
@@ -86,31 +97,36 @@ class Route:
         if not path:
             raise RouteError('path must be a valid url path.')
 
-        new_route = Route(path, self.router, self.name)
-        return self + new_route
+        new_route = Route(
+            self.router,
+            name=kw.get('name', f'Extension of {self}')
+        )
+        new_route.path = self._path.extend(path, enforce=kw.get('enforce'))
+        return new_route
 
     def __call__(
             self, path: str, method: str,
-            **kwargs_for_routedef: Any
+            **kw: Any
     ) -> Callable[..., Any]:
         """Decorator method to wrap a callable (handler), in a "view".
         """
-        path = self.path + self._validate_path(path)
+        res_type = _pop(kw, 'res_type')
+        path: Resource = self._path.leaf(path, res_type=res_type)
+
+        # Any kwargs that get through to here
+        # will be considered kwargs for web.routedef.
+        kwargs_for_routedef = kw
 
         def inner(handler: Callable[..., Any]) -> Callable[..., Any]:
             return _make_view(
                 handler,
-                ViewAttrs(path, method, kwargs_for_routedef)
+                ViewAttrs(str(path), method, kwargs_for_routedef)
             )
 
         return inner
 
-    def _validate_path(self, path: str) -> str:
-        if self.is_base or _is_base_path(path):
-            return ''
-        if not path.startswith('/'):
-            path = f'/{path}'
-        return path
+    def __str__(self):
+        return f"Route: {self.name}"
 
 
 class ViewError(ValueError):
