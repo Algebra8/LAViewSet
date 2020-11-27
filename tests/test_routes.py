@@ -56,25 +56,6 @@ def test_get_view_attrs(view_with_attrs, not_view):
         routes.get_view_attrs(not_view)
 
 
-def test_route_add_success():
-    r1 = routes.Route.create_base(_fake_router)
-    r2 = routes.Route('/listings', _fake_router)
-    r3 = r1 + r2
-    assert r3.path == '/listings'
-
-    r1_v = routes.Route('/listings', _fake_router)
-    r2_v = routes.Route('/videos', _fake_router)
-    r3_v = r1_v + r2_v
-    assert r3_v.path == '/listings/videos'
-
-
-def test_route_add_fail():
-    r1 = routes.Route('/', _fake_router)
-    r2 = routes.Route('/listings', cast(web.UrlDispatcher, None))
-    with pytest.raises(routes.RouteError):
-        r1 + r2
-
-
 def test_create_base(base_router):
     assert base_router.is_base
     assert base_router.name == _ROUTE_NAME
@@ -86,7 +67,8 @@ def test_extend(base_router):
     r_0 = base_router.extend('/listings')
     assert r_0 != base_router
     assert r_0.path == '/listings'
-    assert r_0.name == _ROUTE_NAME
+    # Default name
+    assert r_0.name == f'Extension of Route: {base_router.name}'
     assert r_0.router is _fake_router
 
     r_1 = base_router.extend('listings')
