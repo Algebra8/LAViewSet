@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, NamedTuple
 from enum import Enum
 
 
@@ -133,13 +133,46 @@ class Resource:
         Side-effects:
             - will modify path if STRICT, SUBORDINATE
             combo are used.
+            - will raise TypeError for STRICT, EMPTY or
+            NON-STRICT, ~EMPTY
         """
         enforce = Rfc(self.enforce)
         res_type = Rfc(self.res_type)
 
         if enforce is Rfc.STRICT:
-            assert res_type is not Rfc.EMPTY, "RES TYPE IS NONE"
-            if res_type is Rfc.SUB:
-                self.path = self.path[:-1]
+            self._validate_strict(res_type)
         elif enforce is Rfc.NON_STRICT:
-            assert res_type is Rfc.EMPTY, "RES TYPE IS NOT NONE"
+            self._validate_non_strict(res_type)
+
+    def _validate_strict(self, res_type):
+        """Validate a STRICT, `res_type` combo.
+
+        Side-effects:
+            - may modify path
+            - may raise TypeError
+        """
+        if res_type is Rfc.EMPTY:
+            raise TypeError("Must set resource type  STRICT.")
+        if res_type is Rfc.SUB:
+            self.path = self.path[:-1]
+
+    @staticmethod
+    def _validate_non_strict(res_type):
+        """Validate a NON-STRICT, `res_type` combo.
+
+        Side-effects:
+            - may raise TypeError
+        """
+        if res_type is not Rfc.EMPTY:
+            raise TypeError("Don't set a resource type when NON-STRICT.")
+
+
+class RfcInterface(NamedTuple):
+
+    strict = Rfc.STRICT
+    non_strict = Rfc.NON_STRICT
+    collection = Rfc.COL
+    subordinate = Rfc.SUB
+
+
+rfc = RfcInterface()
