@@ -25,7 +25,7 @@ def _pop(d: Dict[str, Any], key: str) -> Optional[Any]:
         del d[key]
     else:
         val = None
-    return
+    return val
 
 
 class ViewAttrs(NamedTuple):
@@ -111,7 +111,13 @@ class Route:
         """Decorator method to wrap a callable (handler), in a "view".
         """
         res_type = _pop(kw, 'res_type')
-        path: Resource = self._path.leaf(path, res_type=res_type)
+        try:
+            path: Resource = self._path.leaf(path, res_type=res_type)
+        except TypeError as te:
+            raise RouteError(
+                'Incorrect resource type '
+                f'for route: {te}'
+            ) from None
 
         # Any kwargs that get through to here
         # will be considered kwargs for web.routedef.
