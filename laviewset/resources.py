@@ -98,7 +98,15 @@ class Resource:
         return self.path
 
     def extend(self, path, *, enforce=None) -> Resource:
-        """Extend an already existing resource."""
+        """Extend an already existing resource.
+
+        Enforcement can be overridden in call to extend by
+        passing `enforce`, otherwise self's `enforce` will be
+        used.
+        """
+        if enforce is None:
+            enforce = self.enforce
+
         extended = Resource(
             self.path + path,
             enforce=enforce,
