@@ -270,6 +270,15 @@ class _ViewSetMeta(Generic[_K], type):
         # a Route object set to the attr name 'route' as a class
         # attribute.
         _route = cls.route
+        if _route is _fake_route:
+            # A _fake_router indicates that this class
+            # is still not ready for initialization. That is,
+            # the skeleton can be set up with no complaints,
+            # but until a real route is offered, nothing will work.
+            # Only abstract classes should allow _fake_route,
+            # otherwise subclassable classes should have route
+            # as empty.
+            return cast(_ViewSetMeta[_K], cls)
         if _route is empty:
             raise ViewSetDefinitionError(
                 'Make sure to set route = Route() on ViewSet.'
@@ -312,7 +321,7 @@ class _ViewSetMeta(Generic[_K], type):
 
 class ViewSet(_ViewSet, metaclass=_ViewSetMeta):
 
-    route = _fake_route
+    route = empty
 
     async def list(self, request: web.Request) -> web.StreamResponse:
         return raise_404()
