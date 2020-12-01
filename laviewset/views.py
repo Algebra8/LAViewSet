@@ -258,93 +258,91 @@ class _ViewSetMeta(Generic[_K], type):
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
-    def __new__(
-            mcs, clsname: str,
-            bases: Tuple[Any, ...],
-            clsdict: Dict[str, Any]
-    ) -> _ViewSetMeta[_K]:
-        cls = super().__new__(mcs, clsname, bases, clsdict)
-        assert issubclass(cls, _ViewSet)
+    # def __new__(
+    #         mcs, clsname: str,
+    #         bases: Tuple[Any, ...],
+    #         clsdict: Dict[str, Any]
+    # ) -> _ViewSetMeta[_K]:
+    #     cls = super().__new__(mcs, clsname, bases, clsdict)
+    #     assert issubclass(cls, _ViewSet)
+    #
+    #     # Any class that makes use of this metaclass must have
+    #     # a Route object set to the attr name 'route' as a class
+    #     # attribute.
+    #     # TODO figure out bottom
+    #     _route = cls.route
+    #     if _route is _fake_route:
+    #         # A _fake_router indicates that this class
+    #         # is still not ready for initialization. That is,
+    #         # the skeleton can be set up with no complaints,
+    #         # but until a real route is offered, nothing will work.
+    #         # Only abstract classes should allow _fake_route,
+    #         # otherwise subclassable classes should have route
+    #         # as empty.
+    #         return cast(_ViewSetMeta[_K], cls)
+    #     # if _route is empty:
+    #     #     raise ViewSetDefinitionError(
+    #     #         'Make sure to set route = Route() on ViewSet.'
+    #     #     )
+    #     # if not isinstance(_route, Route):
+    #     #     raise ViewSetDefinitionError(
+    #     #         '"route" must be of type Route.'
+    #     #     )
+    #     for name, attr in _extract_views(clsdict):
+    #         # We have to get the attribute from the class
+    #         # to invoke __getattribute__.
+    #         bound_view = getattr(cls(), name)
+    #         _handler: _ViewHandler = _get_handler_from_view(bound_view)
+    #
+    #         _create_and_register_routedef(
+    #             _handler,
+    #             cls.route.router
+    #         )
+    #
+    #     return cast(_ViewSetMeta[_K], cls)
 
-        # Any class that makes use of this metaclass must have
-        # a Route object set to the attr name 'route' as a class
-        # attribute.
-        _route = cls.route
-        if _route is _fake_route:
-            # A _fake_router indicates that this class
-            # is still not ready for initialization. That is,
-            # the skeleton can be set up with no complaints,
-            # but until a real route is offered, nothing will work.
-            # Only abstract classes should allow _fake_route,
-            # otherwise subclassable classes should have route
-            # as empty.
-            return cast(_ViewSetMeta[_K], cls)
-        if _route is empty:
-            raise ViewSetDefinitionError(
-                'Make sure to set route = Route() on ViewSet.'
-            )
-        if not isinstance(_route, Route):
-            raise ViewSetDefinitionError(
-                '"route" must be of type Route.'
-            )
 
-        for name, attr in _extract_views(clsdict):
+class ViewSet(metaclass=_ViewSetMeta):
+
+    route = empty
+
+    def __init_subclass__(cls, **kwargs):
+        for name, attr in _extract_views(cls.__dict__):
             # We have to get the attribute from the class
             # to invoke __getattribute__.
-            _handler: _ViewHandler = getattr(cls, name)
+            bound_view = getattr(cls(), name)
+            _handler: _ViewHandler = _get_handler_from_view(bound_view)
 
             _create_and_register_routedef(
                 _handler,
                 cls.route.router
             )
 
-        return cast(_ViewSetMeta[_K], cls)
 
-    def __getattribute__(cls, item: str) -> Union[_SimpleHandler, Any]:
-        """Override __getattribute for any instance of _ViewSetMeta.
-
-        If the retrieved item is a view, then bind it the instance
-        of the class that uses _ViewSetMeta as its metaclass and
-        return a wrapped aiohttp web handler type callable.
-        """
-        o = object.__getattribute__(cls, item)
-
-        if is_view(o):
-            # We bind the view to the instance to handle
-            # the `self` argument of the ViewSet method.
-            # Note "the instance", not "an instance": see __call__.
-            bound_view = getattr(cls(), item)
-            return _get_handler_from_view(bound_view)
-
-        return o
-
-
-class ViewSet(_ViewSet, metaclass=_ViewSetMeta):
+class ModelViewSet(ViewSet):
 
     route = empty
 
-    async def list(self, request: web.Request) -> web.StreamResponse:
-        return raise_404()
+    def __init_subclass__(cls, **kwargs):
+        # Here route should be overridden with
+        # an actual Route object.
+        list_wrapper = cls.route('/', HttpMethods.GET)(getattr(cls, 'list'))
+        setattr(cls, 'list', list_wrapper)
 
-    async def create(self, request: web.Request) -> web.StreamResponse:
-        return raise_404()
+        super().__init_subclass__()
 
-    async def retrieve(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+    async def list(self, request):
+        return web.Response(text='at list!')
 
-    async def update(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+# class ViewSet(_ViewSet, metaclass=_ViewSetMeta):
+#
+#     route = _fake_route
 
-    async def partial_update(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
 
-    async def delete(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+# class ModelViewSet(_ViewSet, metaclass=_ViewSetMeta):
+#
+#     route = _fake_route
+#
+#     @route('/', HttpMethods.GET)
+#     async def list(self, request):
+#         return web.Response(text='at list!')
