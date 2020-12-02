@@ -1,7 +1,8 @@
 from typing import Tuple
 
 from .routes import Route
-from .views import ViewSet, HttpMethods
+from .views import ViewSet
+from .http_meths import HttpMethods
 
 __all__: Tuple[str] = (
     'Route',

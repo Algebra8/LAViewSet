@@ -21,11 +21,18 @@ import inspect
 import string
 import types
 
-from aiohttp import hdrs, web
+from aiohttp import web
 
 from .routes import (
     Route,
     is_view, get_view_attrs
+)
+from .mixins import (
+    ListMixin,
+    RetrieveMixin,
+    DestroyMixin,
+    UpdateMixin,
+    CreateMixin
 )
 
 
@@ -214,15 +221,6 @@ def raise_404() -> NoReturn:
     raise web.HTTPNotFound()
 
 
-class HttpMethods:
-
-    GET = hdrs.METH_GET
-    POST = hdrs.METH_POST
-    PUT = hdrs.METH_PUT
-    DELETE = hdrs.METH_DELETE
-    PATCH = hdrs.METH_PATCH
-
-
 class ViewSetDefinitionError(ValueError, TypeError):
     """Exception class for ViewSet setup."""
 
@@ -236,8 +234,8 @@ class ViewSignatureError(TypeError):
 # ViewSet.
 empty = object()
 
-# Since subclassed ViewSets are constructed
-# statically, a fake Route api is required to
+# Since subclassed ViewSets are statically
+# constructed, a fake Route api is required to
 # construct abstract subclasses of ViewSet.
 _fake_app = cast(web.UrlDispatcher, object())
 _fake_route = Route('', _fake_app)
@@ -267,7 +265,7 @@ class _ViewSetMeta(Generic[_K], type):
         return cls._instances[cls]
 
 
-class ViewSet(metaclass=_ViewSetMeta):
+class GenericViewSet(metaclass=_ViewSetMeta):
 
     route = _fake_route
 
@@ -284,12 +282,16 @@ class ViewSet(metaclass=_ViewSetMeta):
             raise ViewSetDefinitionError(
                 '"route" must be of type Route.'
             )
+        if route is _fake_route:
+            # Avoid ViewSet creation for abstract
+            # subclasses of ViewSet.
+            return
 
         for name, attr in _extract_views(cls.__dict__):
             # We have to get the attribute from the class
             # to invoke __getattribute__.
             bound_view = getattr(cls(), name)
-            _handler: _ViewHandler = _get_handler_from_view(bound_view)
+            _handler: _SimpleHandler = _get_handler_from_view(bound_view)
 
             _create_and_register_routedef(
                 _handler,
@@ -297,29 +299,18 @@ class ViewSet(metaclass=_ViewSetMeta):
             )
 
 
-class ModelViewSet(ViewSet):
+class ViewSet(GenericViewSet):
 
     route = _fake_route
 
-    def __init_subclass__(cls, **kwargs):
-        # Here route should be overridden with
-        # an actual Route object.
-        list_wrapper = cls.route('/', HttpMethods.GET)(getattr(cls, 'list'))
-        setattr(cls, 'list', list_wrapper)
-        retrieve_wrapper = cls.route(
-            r'/{pk:\d+}', HttpMethods.GET
-        )(getattr(cls, 'retrieve'))
-        setattr(cls, 'retrieve', retrieve_wrapper)
 
-        # ViewSet's __init_subclass__ is called last to
-        # set up the views we defined above.
-        super().__init_subclass__()
+class ModelViewSet(
+    CreateMixin, RetrieveMixin, UpdateMixin,
+    DestroyMixin, ListMixin,
+    GenericViewSet
+):
 
-    async def list(self, request):
-        return web.Response(text='at list!')
-
-    async def retrieve(self, request, *, pk):
-        return web.Response(text=f"Retrieve with {pk}")
+    route = _fake_route
 
 
 # Set routes to empty after the construction of any abstract
