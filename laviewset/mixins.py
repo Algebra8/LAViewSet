@@ -2,64 +2,72 @@ from aiohttp import web
 from .http_meths import HttpMethods
 
 
-# Need to override __init_subclass__ for each action mixin.
-# A call to super() is necessary so that the next action mixin
-# in a subclassed ViewSet has __init_subclass__ called as well.
+def _make_patched_initsubclass_for(
+        __class__, *, path, method, handler_name
+):
+
+    def _patched_initsubclass(cls, **kwargs):
+        wrapper = cls.route(path, method)
+        setattr(
+            cls, handler_name,
+            wrapper(getattr(cls, handler_name))
+        )
+        super().__init_subclass__(**kwargs)
+    return classmethod(_patched_initsubclass)
+
+
+def make_mixin(path, method, handler_name):
+    """
+    Decorator to convert a class into a ViewSet Mixin.
+    """
+
+    # A key element of ViewSet mixins is the existence of
+    # __init_subclass__ which ensures all mixins in the mro
+    # properly define the needed view and pass on that responsibility
+    # to whatever other mixin might exist on the extended class.
+
+    def mixin_wrapper(cls):
+        cls.__init_subclass__ = _make_patched_initsubclass_for(
+            cls,
+            path=path,
+            method=method,
+            handler_name=handler_name
+        )
+        return cls
+
+    return mixin_wrapper
+
+
+@make_mixin('/', HttpMethods.GET, 'list')
 class ListMixin:
-
-    def __init_subclass__(cls, **kwargs):
-        wrapper = cls.route('/', HttpMethods.GET)
-        setattr(cls, 'list', wrapper(cls.list))
-
-        super().__init_subclass__()
 
     async def list(self, request):
         return web.Response(text='at list!')
 
 
+@make_mixin(r'/{pk:\d+}', HttpMethods.GET, 'retrieve')
 class RetrieveMixin:
-
-    def __init_subclass__(cls, **kwargs):
-        wrapper = cls.route(r'/{pk:\d+}', HttpMethods.GET)
-        setattr(cls, 'retrieve', wrapper(cls.retrieve))
-
-        super().__init_subclass__()
 
     async def retrieve(self, request, *, pk):
         return web.Response(text=f'retrieve {pk}')
 
 
+@make_mixin(r'/{pk:\d+}', HttpMethods.DELETE, 'delete')
 class DestroyMixin:
-
-    def __init_subclass__(cls, **kwargs):
-        wrapper = cls.route(r'/{pk:\d+}', HttpMethods.DELETE)
-        setattr(cls, 'delete', wrapper(cls.delete))
-
-        super().__init_subclass__()
 
     async def delete(self, request, *, pk):
         return web.Response(text=f"Deleting {pk}")
 
 
+@make_mixin(r'/{pk:\d+}', HttpMethods.PUT, 'update')
 class UpdateMixin:
-
-    def __init_subclass__(cls, **kwargs):
-        wrapper = cls.route(r'/{pk:\d+}', HttpMethods.PUT)
-        setattr(cls, 'update', wrapper(cls.update))
-
-        super().__init_subclass__()
 
     async def update(self, request, *, pk):
         return web.Response(text=f"Updating {pk}")
 
 
+@make_mixin('/', HttpMethods.POST, 'create')
 class CreateMixin:
-
-    def __init_subclass__(cls, **kwargs):
-        wrapper = cls.route('/', HttpMethods.POST)
-        setattr(cls, 'create', wrapper(cls.create))
-
-        super().__init_subclass__()
 
     async def create(self, request):
         return web.Response(text=f"Created object")
