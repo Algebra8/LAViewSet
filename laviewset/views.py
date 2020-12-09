@@ -304,6 +304,10 @@ class ViewSet(GenericViewSet):
     route = _fake_route
 
 
+# Placeholder for a model class.
+_fake_db_model = object()
+
+
 class ModelViewSet(
     CreateMixin, RetrieveMixin, UpdateMixin,
     DestroyMixin, ListMixin,
@@ -311,6 +315,13 @@ class ModelViewSet(
 ):
 
     route = _fake_route
+    model = _fake_db_model
+
+    def get_serialzer(self):
+        raise NotImplementedError()
+
+    def get_db(self):
+        return self.route.db
 
 
 # Set routes to empty after the construction of any abstract

@@ -2,6 +2,8 @@ from aiohttp import web
 from .http_meths import HttpMethods
 
 
+# Credit to SO user ShadowRanger:
+# https://stackoverflow.com/questions/65205205/patching-init-subclass
 def _make_patched_initsubclass_for(
         __class__, *, path, method, handler_name
 ):
@@ -42,14 +44,21 @@ def make_mixin(path, method, handler_name):
 class ListMixin:
 
     async def list(self, request):
-        return web.Response(text='at list!')
+        db = self.get_db()
+        l = await db.all(self.model.query)
+        serializer = self.get_serializer()
+        return web.json_response(serializer(l))
 
 
 @make_mixin(r'/{pk:\d+}', HttpMethods.GET, 'retrieve')
 class RetrieveMixin:
 
     async def retrieve(self, request, *, pk):
-        return web.Response(text=f'retrieve {pk}')
+        r = await self.model.query.where(
+            self.model.id == int(pk)
+        ).gino.first()
+        serializer = self.get_serializer()
+        return web.json_response(serializer(r))
 
 
 @make_mixin(r'/{pk:\d+}', HttpMethods.DELETE, 'delete')
