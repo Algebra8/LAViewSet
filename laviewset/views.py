@@ -32,6 +32,7 @@ from .mixins import (
     RetrieveMixin,
     DestroyMixin,
     UpdateMixin,
+    PartialUpdateMixin,
     CreateMixin
 )
 
@@ -310,15 +311,16 @@ _fake_db_model = object()
 
 class ModelViewSet(
     CreateMixin, RetrieveMixin, UpdateMixin,
-    DestroyMixin, ListMixin,
+    PartialUpdateMixin, DestroyMixin, ListMixin,
     GenericViewSet
 ):
 
     route = _fake_route
     model = _fake_db_model
 
-    def get_serialzer(self):
-        raise NotImplementedError()
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.serializer_class
+        return serializer_class(*args, **kwargs)
 
     def get_db(self):
         return self.route.db
