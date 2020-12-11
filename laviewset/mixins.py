@@ -44,8 +44,7 @@ def make_mixin(path, method, handler_name):
 class ListMixin:
 
     async def list(self, request):
-        db = self.get_db()
-        l = await db.all(self.model.query)
+        l = await self.model.query.gino.all()
         serializer = self.get_serializer(many=True)
         data = serializer.dump(l)
         return web.json_response(data)
@@ -55,11 +54,9 @@ class ListMixin:
 class RetrieveMixin:
 
     async def retrieve(self, request, *, pk):
-        r = await self.model.query.where(
-            self.model.id == int(pk)
-        ).gino.first()
+        obj = await _get_or_404(self.model, pk)
         serializer = self.get_serializer()
-        data = serializer.dump(r)
+        data = serializer.dump(obj)
         return web.json_response(data)
 
 
@@ -67,7 +64,7 @@ class RetrieveMixin:
 class DestroyMixin:
 
     async def delete(self, request, *, pk):
-        obj = await self.model.get_or_404(int(pk))
+        obj = await _get_or_404(self.model, pk)
         await obj.delete()
         return web.json_response(dict(id=pk))
 
@@ -80,11 +77,7 @@ class UpdateMixin:
         serializer = self.get_serializer()
         model = self.model
         cleaned_data = serializer.load(data)
-        obj = await model.query.where(model.id == int(pk)).gino.first()
-        if obj is None:
-            raise web.HTTPNotFound(
-                text=f'{model.__qualname__} with pk {pk} does not exist.'
-            )
+        obj = await _get_or_404(model, pk)
         await obj.update(**cleaned_data).apply()
         resp_data = serializer.dump(obj)
         return web.json_response(data=resp_data)
@@ -98,11 +91,7 @@ class PartialUpdateMixin:
         serializer = self.get_serializer()
         model = self.model
         cleaned_data = serializer.load(data, partial=True)
-        obj = await model.query.where(model.id == int(pk)).gino.first()
-        if obj is None:
-            raise web.HTTPNotFound(
-                text=f'{model.__qualname__} with pk {pk} does not exist.'
-            )
+        obj = await _get_or_404(model, pk)
         await obj.update(**cleaned_data).apply()
         resp_data = serializer.dump(obj)
         return web.json_response(data=resp_data)
@@ -115,14 +104,10 @@ class CreateMixin:
         data = await request.json()
         serializer = self.get_serializer()
         model = self.model
-
         cleaned_data = serializer.load(data)
-
         await serializer.is_valid(cleaned_data, raise_exception=True)
-
         obj = await model.create(**cleaned_data)
         resp_data = serializer.dump(obj)
-
         return web.json_response(data=resp_data, status=201)
 
 
@@ -133,3 +118,14 @@ class SerializerMixin:
 
     def not_valid(self, *, msg: str = ''):
         raise web.HTTPBadRequest(text=msg)
+
+
+async def _get_or_404(model, pk):
+    obj = await model.query.where(
+        model.id == int(pk)
+    ).gino.first()
+    if obj is None:
+        raise web.HTTPNotFound(
+            text=f'{model.__qualname__} with pk {pk} does not exist.'
+        )
+    return obj
