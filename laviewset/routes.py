@@ -5,15 +5,10 @@ from typing import (
     Dict,
     Any,
     Callable,
-    Optional,
-    TYPE_CHECKING
 )
 
 import attr
 from aiohttp import web
-
-if TYPE_CHECKING:
-    from gino import Gino
 
 
 _VIEW = '_view_'
@@ -52,7 +47,6 @@ class Route:
     path: str
     router: web.UrlDispatcher
 
-    db: Optional[Gino] = None
     name: str = f'Route for {__name__}'  # default name
     is_base: bool = False
 
@@ -65,7 +59,6 @@ class Route:
         return Route(
             self.path + oroute.path,
             self.router,
-            db=self.db,
             name=self.name
         )
 
@@ -81,7 +74,7 @@ class Route:
         """
         return Route('', router, is_base=True, **kw)
 
-    def extend(self, path: str, *, name: Optional[str] = None) -> Route:
+    def extend(self, path: str) -> Route:
         """Create and return an extension of an existing Route.
 
         E.g.
@@ -93,10 +86,7 @@ class Route:
         if not path:
             raise RouteError('path must be a valid url path.')
 
-        if name is None:
-            name = f"Extension of {self.name}"
-
-        new_route = Route(path, self.router, db=self.db, name=name)
+        new_route = Route(path, self.router, self.name)
         return self + new_route
 
     def __call__(
