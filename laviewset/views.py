@@ -299,14 +299,14 @@ class GenericViewSet(metaclass=_ViewSetMeta):
                 cls.route.router
             )
 
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.serializer_class
+        return serializer_class(*args, **kwargs)
+
 
 class ViewSet(GenericViewSet):
 
     route = _fake_route
-
-
-# Placeholder for a model class.
-_fake_db_model = object()
 
 
 class ModelViewSet(
@@ -314,16 +314,29 @@ class ModelViewSet(
     PartialUpdateMixin, DestroyMixin, ListMixin,
     GenericViewSet
 ):
+    """
+    A viewset that provides default `create()`, `retrieve()`, `update()`,
+    `partial_update()`, `destroy()` and `list()` actions.
+
+    A namesake of, and inspired from, django-rest-framework/ModelViewSet.
+    """
 
     route = _fake_route
-    model = _fake_db_model
+    model = None
 
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.serializer_class
-        return serializer_class(*args, **kwargs)
 
-    def get_db(self):
-        return self.route.db
+class ReadOnlyModelViewSet(
+    RetrieveMixin, ListMixin,
+    GenericViewSet
+):
+    """
+    A viewset that provides default `list()` and `retrieve()` actions.
+
+    A namesake of, and inspired from, django-rest-framework/ReadOnly
+    ModelViewSet.
+    """
+
+    pass
 
 
 # Set routes to empty after the construction of any abstract
