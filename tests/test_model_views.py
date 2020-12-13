@@ -15,7 +15,7 @@ def model_viewset_core(db_router):
 
         route = db_router.extend('users')
         model = User
-        serializer_class = UserSchema
+        serializer_class = _serializer_class
 
     return SomeViewSet
 
