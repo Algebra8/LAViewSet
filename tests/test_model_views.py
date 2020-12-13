@@ -11,8 +11,6 @@ _serializer_class = UserSchema
 @pytest.fixture
 def model_viewset_core(db_router):
 
-    # app, router = db_router
-
     class SomeViewSet(ModelViewSet):
 
         route = db_router.extend('users')
