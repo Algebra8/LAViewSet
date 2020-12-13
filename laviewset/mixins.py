@@ -1,4 +1,6 @@
 from aiohttp import web
+from marshmallow import ValidationError
+
 from .http_meths import HttpMethods
 
 
@@ -66,7 +68,7 @@ class DestroyMixin:
     async def delete(self, request, *, pk):
         obj = await _get_or_404(self.model, pk)
         await obj.delete()
-        return web.json_response(dict(id=pk))
+        return web.json_response(status=204)
 
 
 @make_mixin(r'/{pk:\d+}', HttpMethods.PUT, 'update')
@@ -76,7 +78,7 @@ class UpdateMixin:
         data = await request.json()
         serializer = self.get_serializer()
         model = self.model
-        cleaned_data = serializer.load(data)
+        cleaned_data = _validate_or_raise(serializer, data)
         obj = await _get_or_404(model, pk)
         await obj.update(**cleaned_data).apply()
         resp_data = serializer.dump(obj)
@@ -88,9 +90,9 @@ class PartialUpdateMixin:
 
     async def partial_update(self, request, *, pk):
         data = await request.json()
-        serializer = self.get_serializer()
+        serializer = self.get_serializer(partial=True)
         model = self.model
-        cleaned_data = serializer.load(data, partial=True)
+        cleaned_data = _validate_or_raise(serializer, data)
         obj = await _get_or_404(model, pk)
         await obj.update(**cleaned_data).apply()
         resp_data = serializer.dump(obj)
@@ -106,9 +108,17 @@ class CreateMixin:
         model = self.model
         cleaned_data = serializer.load(data)
         await serializer.is_valid(cleaned_data, raise_exception=True)
-        obj = await model.create(**cleaned_data)
-        resp_data = serializer.dump(obj)
-        return web.json_response(data=resp_data, status=201)
+        u = await model.create(**cleaned_data)
+        headers = self.get_success_headers(f"{request.url}/{u.id}")
+        return web.json_response(
+            data=cleaned_data,
+            status=201,
+            headers=headers
+        )
+
+    @staticmethod
+    def get_success_headers(loc: str):
+        return {'Location': loc}
 
 
 class SerializerMixin:
@@ -129,3 +139,11 @@ async def _get_or_404(model, pk):
             text=f'{model.__qualname__} with pk {pk} does not exist.'
         )
     return obj
+
+
+def _validate_or_raise(serializer, data):
+    try:
+        cleaned_data = serializer.load(data)
+    except ValidationError as ve:
+        raise web.HTTPBadRequest(text=str(ve)) from None
+    return cleaned_data
