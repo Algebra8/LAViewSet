@@ -41,6 +41,11 @@ async def test_retrieve(db_cli_core, get_user_1):
     assert dat == _serializer_class().dump(get_user_1)
 
 
+async def test_retrieve_404(db_cli_core):
+    resp = await db_cli_core.get('/users/99')
+    assert resp.status == 404
+
+
 async def test_create(db_cli_core):
     data = {'id': 4, 'nickname': 'new_user'}
     resp = await db_cli_core.post('/users', data=json.dumps(data))
