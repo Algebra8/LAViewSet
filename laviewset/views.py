@@ -247,7 +247,7 @@ empty = object()
 # constructed, a fake Route api is required to
 # construct abstract subclasses of ViewSet.
 _fake_app = cast(web.UrlDispatcher, object())
-_fake_route = Route('', _fake_app)
+_fake_route = Route.create_base(_fake_app)
 
 
 class _ViewSet:
