@@ -57,5 +57,5 @@ setuptools.setup(
         "Intended Audience :: Developers",
     ],
     python_requires='>=3.7',
-    install_requires=["aiohttp"]
+    install_requires=["aiohttp", "marshmallow"]
 )
