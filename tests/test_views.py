@@ -2,7 +2,7 @@ import pytest
 import mock
 from aiohttp import web
 
-from laviewset import views, routes
+from laviewset import views, routes, HttpMethods
 
 
 _TEST_RESPONSE = "hello, hows it going?"
@@ -31,27 +31,27 @@ def viewset_core(base_route):
 
         route = base_route.extend('tests')
 
-        @route('/', views.HttpMethods.GET)
+        @route('/', HttpMethods.GET)
         async def list(self, request):
             return web.Response(text=_TEST_RESPONSE)
 
-        @route('/', views.HttpMethods.POST)
+        @route('/', HttpMethods.POST)
         async def create(self, request):
             return web.json_response(_DATA)
 
-        @route(r'/{pk:\d+}', views.HttpMethods.GET)
+        @route(r'/{pk:\d+}', HttpMethods.GET)
         async def retrieve(self, request, *, pk):
             return web.Response(text=_generate_var_id_resource(pk))
 
-        @route(r'/{pk:\d+}', views.HttpMethods.PUT)
+        @route(r'/{pk:\d+}', HttpMethods.PUT)
         async def update(self, request, *, pk):
             return web.Response(text=_generate_var_id_resource(pk))
 
-        @route(r'/{pk:\d+}', views.HttpMethods.PATCH)
+        @route(r'/{pk:\d+}', HttpMethods.PATCH)
         async def partial_update(self, request, *, pk):
             return web.Response(text=_generate_var_id_resource(pk))
 
-        @route(r'/{pk:\d+}', views.HttpMethods.DELETE)
+        @route(r'/{pk:\d+}', HttpMethods.DELETE)
         async def delete(self, request, *, pk):
             return web.Response(text=_generate_var_id_resource(pk))
 
@@ -72,24 +72,24 @@ def viewset_custom_methods(base_route):
 
         route = base_route.extend('custom')
 
-        @route('/', views.HttpMethods.GET)
+        @route('/', HttpMethods.GET)
         async def custom_get(self, request):
             return web.Response(text=_TEST_RESPONSE)
 
-        @route('/', views.HttpMethods.POST)
+        @route('/', HttpMethods.POST)
         async def custom_post(self, request):
             return web.Response(text=_TEST_RESPONSE)
 
-        @route('/', views.HttpMethods.PUT)
+        @route('/', HttpMethods.PUT)
         async def custom_put(self, request):
             return web.Response(text=_TEST_RESPONSE)
 
-        @route('/', views.HttpMethods.PATCH)
+        @route('/', HttpMethods.PATCH)
         async def custom_patch(self, request):
             return web.Response(text=_TEST_RESPONSE)
 
         # Use this view to test multiple dyamic resources.
-        @route(r'/{pk:\d+}/{name:\w+}', views.HttpMethods.DELETE)
+        @route(r'/{pk:\d+}/{name:\w+}', HttpMethods.DELETE)
         async def custom_delete(self, request, *, pk, name):
             return web.Response(text=_generate_var_id_resource(pk, name))
 
@@ -118,7 +118,7 @@ async def test_list(cli_core):
     resp = await cli_core.get('/tests')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.GET
+    assert resp.method == HttpMethods.GET
     assert await resp.text() == _TEST_RESPONSE
 
 
@@ -126,7 +126,7 @@ async def test_create(cli_core):
     resp = await cli_core.post('/tests')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.POST
+    assert resp.method == HttpMethods.POST
     assert await resp.json() == _DATA
 
 
@@ -134,7 +134,7 @@ async def test_retrieve(cli_core):
     resp = await cli_core.get(f'/tests/{_PK}')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.GET
+    assert resp.method == HttpMethods.GET
     assert await resp.text() == _generate_var_id_resource(_PK)
 
 
@@ -142,7 +142,7 @@ async def test_update(cli_core):
     resp = await cli_core.put(f'/tests/{_PK}')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.PUT
+    assert resp.method == HttpMethods.PUT
     assert await resp.text() == _generate_var_id_resource(_PK)
 
 
@@ -150,7 +150,7 @@ async def test_partial_update(cli_core):
     resp = await cli_core.patch(f'/tests/{_PK}')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.PATCH
+    assert resp.method == HttpMethods.PATCH
     assert await resp.text() == _generate_var_id_resource(_PK)
 
 
@@ -158,7 +158,7 @@ async def test_delete(cli_core):
     resp = await cli_core.delete(f'/tests/{_PK}')
 
     assert resp.status == 200
-    assert resp.method == views.HttpMethods.DELETE
+    assert resp.method == HttpMethods.DELETE
     assert await resp.text() == _generate_var_id_resource(_PK)
 
 
@@ -223,7 +223,7 @@ async def test_wrong_arg_name(base_route):
 
             route = base_route.extend('view_fail')
 
-            @route(r'/{pk:\d+}', views.HttpMethods.GET)
+            @route(r'/{pk:\d+}', HttpMethods.GET)
             async def wrong_arg_name(self, request, *, name):
                 # This should fail because `name` != `pk`.
                 ...
@@ -243,7 +243,7 @@ async def test_pos_arg(base_route):
 
             route = base_route.extend('view_fail')
 
-            @route(r'/{pk:\d+}', views.HttpMethods.GET)
+            @route(r'/{pk:\d+}', HttpMethods.GET)
             async def wrong_arg_name(self, request, pk):
                 # This should fail because `name` != `pk`.
                 ...
@@ -286,7 +286,7 @@ def test_registered_routedef(mock_webroute, base_route):
 
         route = base_route.extend('test')
 
-        @route('/', views.HttpMethods.GET, z=10)
+        @route('/', HttpMethods.GET, z=10)
         async def list(self, request):
             return web.Response(text=_TEST_RESPONSE)
 

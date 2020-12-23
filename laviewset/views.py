@@ -21,11 +21,27 @@ import inspect
 import string
 import types
 
-from aiohttp import hdrs, web
+from aiohttp import web
 
 from .routes import (
     Route,
     is_view, get_view_attrs
+)
+from .mixins import (
+    ListMixin,
+    RetrieveMixin,
+    DestroyMixin,
+    UpdateMixin,
+    PartialUpdateMixin,
+    CreateMixin
+)
+
+__all__ = (
+    'ViewSet',
+    'ModelViewSet',
+    'ReadOnlyModelViewSet',
+    'ViewSignatureError',
+    'ViewSetDefinitionError'
 )
 
 
@@ -214,15 +230,6 @@ def raise_404() -> NoReturn:
     raise web.HTTPNotFound()
 
 
-class HttpMethods:
-
-    GET = hdrs.METH_GET
-    POST = hdrs.METH_POST
-    PUT = hdrs.METH_PUT
-    DELETE = hdrs.METH_DELETE
-    PATCH = hdrs.METH_PATCH
-
-
 class ViewSetDefinitionError(ValueError, TypeError):
     """Exception class for ViewSet setup."""
 
@@ -231,7 +238,14 @@ class ViewSignatureError(TypeError):
     """Exception class for view signatures."""
 
 
+# `empty` allows asserting that the user has
+# provided a route attribute to any extended
+# ViewSet.
 empty = object()
+
+# Since subclassed ViewSets are statically
+# constructed, a fake Route api is required to
+# construct abstract subclasses of ViewSet.
 _fake_app = cast(web.UrlDispatcher, object())
 _fake_route = Route.create_base(_fake_app)
 
@@ -251,91 +265,91 @@ class _ViewSetMeta(Generic[_K], type):
     route = empty
 
     def __call__(cls: _ViewSetMeta[_K], *args: Any, **kwargs: Any) -> _K:
-        """Make any class that uses _ViewSetMeta as a metaclass
+        """
+        Make any class that uses _ViewSetMeta as a metaclass
         a singleton.
         """
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
-    def __new__(
-            mcs, clsname: str,
-            bases: Tuple[Any, ...],
-            clsdict: Dict[str, Any]
-    ) -> _ViewSetMeta[_K]:
-        cls = super().__new__(mcs, clsname, bases, clsdict)
-        assert issubclass(cls, _ViewSet)
 
-        # Any class that makes use of this metaclass must have
-        # a Route object set to the attr name 'route' as a class
-        # attribute.
-        _route = cls.route
-        if _route is empty:
+class GenericViewSet(metaclass=_ViewSetMeta):
+
+    route = _fake_route
+
+    def __init_subclass__(cls, **kwargs):
+        route = cls.route
+
+        # Make sure a valid route is set on
+        # the subclass.
+        if route is empty:
             raise ViewSetDefinitionError(
                 'Make sure to set route = Route() on ViewSet.'
             )
-        if not isinstance(_route, Route):
+        if not isinstance(route, Route):
             raise ViewSetDefinitionError(
                 '"route" must be of type Route.'
             )
+        if route is _fake_route:
+            # Avoid ViewSet creation for abstract
+            # subclasses of ViewSet.
+            return
 
-        for name, attr in _extract_views(clsdict):
+        for name, attr in _extract_views(cls.__dict__):
             # We have to get the attribute from the class
             # to invoke __getattribute__.
-            _handler: _ViewHandler = getattr(cls, name)
+            bound_view = getattr(cls(), name)
+            _handler: _SimpleHandler = _get_handler_from_view(bound_view)
 
             _create_and_register_routedef(
                 _handler,
                 cls.route.router
             )
 
-        return cast(_ViewSetMeta[_K], cls)
-
-    def __getattribute__(cls, item: str) -> Union[_SimpleHandler, Any]:
-        """Override __getattribute for any instance of _ViewSetMeta.
-
-        If the retrieved item is a view, then bind it the instance
-        of the class that uses _ViewSetMeta as its metaclass and
-        return a wrapped aiohttp web handler type callable.
-        """
-        o = object.__getattribute__(cls, item)
-
-        if is_view(o):
-            # We bind the view to the instance to handle
-            # the `self` argument of the ViewSet method.
-            # Note "the instance", not "an instance": see __call__.
-            bound_view = getattr(cls(), item)
-            return _get_handler_from_view(bound_view)
-
-        return o
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.serializer_class
+        return serializer_class(*args, **kwargs)
 
 
-class ViewSet(_ViewSet, metaclass=_ViewSetMeta):
+class ViewSet(GenericViewSet):
 
     route = _fake_route
 
-    async def list(self, request: web.Request) -> web.StreamResponse:
-        return raise_404()
 
-    async def create(self, request: web.Request) -> web.StreamResponse:
-        return raise_404()
+class ModelViewSet(
+    CreateMixin, RetrieveMixin, UpdateMixin,
+    PartialUpdateMixin, DestroyMixin, ListMixin,
+    GenericViewSet
+):
+    """
+    A viewset that provides default `create()`, `retrieve()`, `update()`,
+    `partial_update()`, `destroy()` and `list()` actions.
 
-    async def retrieve(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+    A namesake of, and inspired from, django-rest-framework/ModelViewSet.
+    """
 
-    async def update(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+    route = _fake_route
+    model = None
 
-    async def partial_update(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
 
-    async def delete(
-            self, request: web.Request, *, pk: int
-    ) -> web.StreamResponse:
-        return raise_404()
+class ReadOnlyModelViewSet(
+    RetrieveMixin, ListMixin,
+    GenericViewSet
+):
+    """
+    A viewset that provides default `list()` and `retrieve()` actions.
+
+    A namesake of, and inspired from, django-rest-framework/ReadOnly
+    ModelViewSet.
+    """
+
+    pass
+
+
+# Set routes to empty after the construction of any abstract
+# subclasses of ViewSet; This is for proper error communication
+# in the case that the user does not set a route attribute
+# on any concrete subclass of ViewSet.
+ViewSet.route = empty
+ModelViewSet.route = empty
