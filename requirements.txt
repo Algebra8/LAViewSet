@@ -4,3 +4,5 @@ mock==4.0.2
 pytest==6.1.2
 pytest-aiohttp==0.3.0
 typing-extensions==3.7.4.3
+gino==1.0.1
+gino-aiohttp==0.2.0
