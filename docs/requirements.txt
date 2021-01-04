@@ -1,0 +1,4 @@
+laviewset
+sphinx==3.4.1
+sphinxcontrib-asyncio==0.3.0
+sphinxcontrib-blockdiag==2.0.0
