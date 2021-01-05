@@ -5,6 +5,8 @@ LAViewSet is a ViewSets package, a-la Django Rest Framework - ViewSets, built on
 `aiohttp <https://github.com/aio-libs/aiohttp>`_, with support for custom ViewSets and
 ModelViewSets.
 
+Custom ViewSets
+~~~~~~~~~~~~~~~~~
 
 .. code:: Python
 
@@ -21,7 +23,8 @@ With the example given above, a ``GET`` request made at ``https://<domain>.com/l
 will trigger ``ListingsViewSet.list`` and return ``"GET at '/listings'"`` as a
 web response.
 
-
+ModelViewSets
+~~~~~~~~~~~~~~~~
 
 ModelViewSets that offer default actions, similar to Django Rest Framework's ModelViewSet,
 can be made using a ``Gino`` model class and a serializer. While any
@@ -76,6 +79,8 @@ From the code snippet above, the following CRUD operations will be available:
       - PATCH
       - ``'/listings/{pk:\d+}'``
 
+
+---------------------------------
 
 For more details on ViewSets, ModelViewSets, or other features, such as
 building your own ModelViewSet flavor, and a reference to the API, check out
