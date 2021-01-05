@@ -6,9 +6,8 @@ LAViewSet is a ViewSets package, a-la Django Rest Framework - ViewSets, built on
 ModelViewSets.
 
 
-
-Quick start
-------------
+Custom ViewSets
+~~~~~~~~~~~~~~~~~
 
 To create a custom ViewSet, create a base :class:`~laviewset.routes.Route`,
 subclass :class:`~laviewset.views.ViewSet`, and include an
@@ -57,8 +56,9 @@ object, and can be accessed as such.
 
     The handler's :ref:`signature matters<handler-signature-section>`!
 
-For more information on ViewSets, please refer to the :ref:`ViewSets section<viewsets-section>`.
 
+ModelViewSets
+~~~~~~~~~~~~~~~
 
 ModelViewSets that offer default actions, similar to Django Rest Framework's ModelViewSet,
 can be made using a :class:`~gino.api.Gino` model class and a serializer. While any
@@ -120,16 +120,21 @@ From the code snippet above, the following CRUD operations will be available:
     There are a few interface requirements for the serializer class, so
     please give a brief look at the :ref:`serializer section<serializer-info>`.
 
-For more details on ModelViewSets, please refer
-to the :ref:`ModelViewSets section<model-viewset-section>`.
 
+
+For more details on ViewSets, ModelViewSets, or other features, such as
+building your own :ref:`ModelViewSet flavor<model-flavors>`, and a reference to
+the API, check out the docs at
+`https://laviewset.readthedocs.io <https://laviewset.readthedocs.io/en/latest/>`_.
 
 
 Requirements
 ------------
 
-* Python >= 3.8
-* aiohttp == 3.6.2
+* Python >= 3.7
+* aiohttp >= 3.6.2
+* gino >= 1.0.0
+* marshmallow >= 3.0.0
 
 
 Installing
@@ -146,5 +151,8 @@ LICENSE
 
 LAViewSet is offered under the MIT license.
 
-LAViewSet is built on top of `aiohttp <https://github.com/aio-libs/aiohttp>`_
-which is distributed under the Apache 2 license.
+LAViewSet is built on top of `aiohttp <https://github.com/aio-libs/aiohttp>`_,
+and makes use of `gino <https://github.com/python-gino/gino>`_ and
+`marshmallow <https://github.com/marshmallow-code/marshmallow>`_, which are
+distributed under the Apache 2 license, BSD License, and MIT License,
+respectively.

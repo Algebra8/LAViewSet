@@ -260,6 +260,8 @@ a :ref:`web.HTTPBadRequest<aiohttp-web-exceptions>`.
             # if validation fails.
             ...
 
+.. _model-flavors:
+
 ModelViewSet Flavors
 *********************
 
