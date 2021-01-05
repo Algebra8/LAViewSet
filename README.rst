@@ -9,31 +9,6 @@ ModelViewSets.
 Custom ViewSets
 ~~~~~~~~~~~~~~~~~
 
-To create a custom ViewSet, create a base :class:`~laviewset.routes.Route`,
-subclass :class:`~laviewset.views.ViewSet`, and include an
-:py:meth:`extension<laviewset.routes.Route.extend>` of the base route on
-the ViewSet as the ``route`` attribute:
-
-
-.. code:: Python
-
-    # laviewset_intro.py
-
-    from aiohttp import web
-    from laviewset import Route, ViewSet, HttpMethods
-
-    app = web.Application()
-    base_route = Route.create_base(app.router)      # '/'
-
-    class ListingsViewSet(ViewSet):
-    """ViewSet for '/listings'"""
-
-        route = base_route.extend('listings')  # '/listings'
-
-
-The ``route`` on the ViewSet is then :ref:`used as a decorator<route-dec-section>`
-to register any asynchronous method into a view handler:
-
 .. code:: Python
 
     class ListingsViewSet(ViewSet):
@@ -49,21 +24,11 @@ With the example given above, a ``GET`` request made at ``https://<domain>.com/l
 will trigger ``ListingsViewSet.list`` and return ``"GET at '/listings'"`` as a
 web response.
 
-The ``request`` in ``list``'s signature is in fact an :class:`aiohttp.web.Request`
-object, and can be accessed as such.
 
-.. note::
-
-    The handler's :ref:`signature matters<handler-signature-section>`!
-
-
-ModelViewSets
-~~~~~~~~~~~~~~~
 
 ModelViewSets that offer default actions, similar to Django Rest Framework's ModelViewSet,
-can be made using a :class:`~gino.api.Gino` model class and a serializer. While any
-serializer class can be used, :class:`marshmallow.Schema<marshmallow.schema.Schema>`
-is recommended.
+can be made using a ``Gino`` model class and a serializer. While any
+serializer class can be used, ``marshmallow`` is recommended.
 
 .. code:: Python
 
@@ -115,17 +80,9 @@ From the code snippet above, the following CRUD operations will be available:
       - ``'/listings/{pk:\d+}'``
 
 
-.. note::
-
-    There are a few interface requirements for the serializer class, so
-    please give a brief look at the :ref:`serializer section<serializer-info>`.
-
-
-
 For more details on ViewSets, ModelViewSets, or other features, such as
-building your own :ref:`ModelViewSet flavor<model-flavors>`, and a reference to
-the API, check out the docs at
-`https://laviewset.readthedocs.io <https://laviewset.readthedocs.io/en/latest/>`_.
+building your own ModelViewSet flavor, and a reference to the API, check out
+the docs at `https://laviewset.readthedocs.io <https://laviewset.readthedocs.io/en/latest/>`_.
 
 
 Requirements
@@ -145,6 +102,7 @@ Install LAViewSet with `pip <https://pip.pypa.io/en/stable/>`_:
 .. code:: bash
 
     pip install laviewset
+
 
 LICENSE
 -------
