@@ -128,8 +128,10 @@ to the :ref:`ModelViewSets section<model-viewset-section>`.
 Requirements
 ------------
 
-* Python >= 3.8
-* aiohttp == 3.6.2
+* Python >= 3.7
+* aiohttp >= 3.6.2
+* gino >= 1.0.0
+* marshmallow >= 3.0.0
 
 
 Installing
