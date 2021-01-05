@@ -59,6 +59,8 @@ decorator.
 With the code snippet above, a **GET** request to *https://<domain>.com/listings*
 will return ``"Get at '/listings'"`` as a web response.
 
+.. _route-dec-section:
+
 The ``@route`` decorator: defining views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

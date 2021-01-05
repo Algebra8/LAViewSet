@@ -9,6 +9,8 @@ Rest Framework - ViewSets <https://www.django-rest-framework.org/api-guide/views
 Viewsets  are implemented
 by subclassing the :class:`laviewset.ViewSet<laviewset.views.ViewSet>` class.
 
+.. _viewsets-section:
+
 Subclassing and using a ViewSet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -42,6 +44,7 @@ to wrap any asynchronous method into a valid handler.
     Read up on :ref:`the routes section<routes-section>` to learn more about
     routes.
 
+.. _handler-signature-section:
 
 Viewset method signatures and arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,6 +135,7 @@ create the ``list`` view shown above:
     are created equally" does not apply to
     :class:`ModelViewSets<laviewset.views.ModelViewSet>`.
 
+.. _model-viewset-section:
 
 ModelViewSets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,8 +169,8 @@ include a route (as was done for
     class ListingsModelViewSet(ModelViewSet):
 
         route = listings_route  # '/listings'
-        model = Listings
-        serializer_class = ListingSchema
+        model = ListingsModel
+        serializer_class = ListingsSchema
 
 
 From the code snippet above, the CRUD operations will be available for
@@ -207,11 +211,10 @@ their respective HTTP methods on the path branching from ``listings_route``:
 A more thorough example of using the ModelViewSet, along with serializer
 creation and creating a Gino model class, can be seen in the [demos!!!].
 
+.. _serializer-info:
 
 The Serializer class
 **********************
-
-.. _serializer-info:
 
 A serializer is required for serializing and deserializing objects during
 CRUD operations. While any serializer class should theoretically work, laviewset's
