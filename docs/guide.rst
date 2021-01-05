@@ -121,9 +121,3 @@ From the code snippet above, the following CRUD operations will be available:
     please give a brief look at the :ref:`serializer section<serializer-info>`.
 
 
-
-For more details on ViewSets, ModelViewSets, or other features, such as
-building your own :ref:`ModelViewSet flavor<model-flavors>`, and a reference to
-the API, check out the docs at
-`https://laviewset.readthedocs.io <https://laviewset.readthedocs.io/en/latest/>`_.
-
