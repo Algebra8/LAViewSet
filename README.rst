@@ -6,9 +6,6 @@ LAViewSet is a ViewSets package, a-la Django Rest Framework - ViewSets, built on
 ModelViewSets.
 
 
-Custom ViewSets
-~~~~~~~~~~~~~~~~~
-
 .. code:: Python
 
     class ListingsViewSet(ViewSet):
